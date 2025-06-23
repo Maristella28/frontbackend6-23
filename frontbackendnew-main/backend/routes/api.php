@@ -55,10 +55,10 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 Route::middleware(['auth:sanctum', 'admin'])->post('/admin/register', [AuthController::class, 'register']);
 
-Route::middleware('auth:sanctum')->get('/announcements', function () {
-    return response()->json([
-        'announcements' => App\Models\Announcement::latest()->get(),
-    ]);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('announcements', AnnouncementController::class);
 });
+
+Route::patch('announcements/{announcement}/toggle', [AnnouncementController::class, 'toggleStatus']);
 
 });

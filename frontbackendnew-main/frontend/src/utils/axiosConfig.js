@@ -4,6 +4,7 @@ const axiosInstance = axios.create({
   baseURL: 'http://localhost:8000/api', // Adjust if your API prefix differs
   withCredentials: true, // Useful for Sanctum or session-based auth
   headers: {
+    'X-Requested-With': 'XMLHttpRequest',
     'Accept': 'application/json',
   },
 });

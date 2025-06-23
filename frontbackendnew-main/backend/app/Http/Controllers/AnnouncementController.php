@@ -8,10 +8,15 @@ use Illuminate\Support\Facades\Storage;
 
 class AnnouncementController extends Controller
 {
-    // ✅ List all announcements (READ)
-    public function index()
+    public function index(Request $request)
     {
-        $announcements = Announcement::orderBy('created_at', 'desc')->get()->map(function ($a) {
+        $query = Announcement::orderBy('created_at', 'desc');
+
+        if (!$request->user() || $request->user()->role !== 'admin') {
+            $query->where('status', 'posted');
+        }
+
+        $announcements = $query->get()->map(function ($a) {
             $a->image_url = $a->image ? asset('storage/' . $a->image) : null;
             return $a;
         });
@@ -19,22 +24,21 @@ class AnnouncementController extends Controller
         return response()->json(['announcements' => $announcements], 200);
     }
 
-    // ✅ Store a new announcement (CREATE)
     public function store(Request $request)
     {
         $validated = $request->validate([
             'title'   => 'required|string|max:255',
             'content' => 'required|string',
-            'image'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048', // ✅ Match frontend
+            'image'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
         $data = [
             'title'        => $validated['title'],
             'content'      => $validated['content'],
-            'published_at' => now(), // ✅ Set publish timestamp
+            'published_at' => now(),
+            'status'       => 'posted',
         ];
 
-        // ✅ Handle image upload
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('announcements', 'public');
         }
@@ -47,7 +51,6 @@ class AnnouncementController extends Controller
         ], 201);
     }
 
-    // ✅ Show a single announcement (READ ONE)
     public function show(Announcement $announcement)
     {
         $announcement->image_url = $announcement->image ? asset('storage/' . $announcement->image) : null;
@@ -55,20 +58,21 @@ class AnnouncementController extends Controller
         return response()->json(['announcement' => $announcement]);
     }
 
-    // ✅ Update an announcement (UPDATE)
-    public function update(Request $request, Announcement $announcement)
+    public function update(Request $request, $id)
     {
+        $announcement = Announcement::findOrFail($id);
+
         $validated = $request->validate([
             'title'   => 'required|string|max:255',
             'content' => 'required|string',
-            'image'   => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'image'   => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $announcement->title = $validated['title'];
         $announcement->content = $validated['content'];
 
         if ($request->hasFile('image')) {
-            // ✅ Delete old image if exists
+            // Delete old image if exists
             if ($announcement->image && Storage::disk('public')->exists($announcement->image)) {
                 Storage::disk('public')->delete($announcement->image);
             }
@@ -78,13 +82,9 @@ class AnnouncementController extends Controller
 
         $announcement->save();
 
-        return response()->json([
-            'message' => 'Announcement updated successfully.',
-            'announcement' => $announcement
-        ]);
+        return response()->json(['message' => 'Announcement updated successfully.']);
     }
 
-    // ✅ Delete an announcement (DELETE)
     public function destroy(Announcement $announcement)
     {
         if ($announcement->image && Storage::disk('public')->exists($announcement->image)) {
@@ -94,5 +94,13 @@ class AnnouncementController extends Controller
         $announcement->delete();
 
         return response()->json(['message' => 'Announcement deleted successfully.']);
+    }
+
+    public function toggleStatus(Announcement $announcement)
+    {
+        $announcement->status = $announcement->status === 'posted' ? 'hidden' : 'posted';
+        $announcement->save();
+
+        return response()->json(['message' => 'Status updated', 'status' => $announcement->status]);
     }
 }
