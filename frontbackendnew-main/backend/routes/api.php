@@ -4,7 +4,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
-
+use App\Http\Controllers\ResidentProfileController;
+use App\Http\Controllers\AnnouncementController;
 /*
 |--------------------------------------------------------------------------
 | Public API Routes (No Authentication Required)
@@ -20,19 +21,44 @@ Route::post('/login', [AuthController::class, 'login']); // returns Bearer token
 */
 Route::middleware('auth:sanctum')->group(function () {
 
-    // ✅ Logout (Revoke Token or delete current access token)
+    // 🔐 Authentication
     Route::post('/logout', [AuthController::class, 'logout']);
-
-    // ✅ Get authenticated user info
     Route::get('/user', function (Request $request) {
         return response()->json($request->user());
     });
 
-    // ✅ Admin dashboard data
-    Route::get('/admin/dashboard', [AdminController::class, 'index']);
+    Route::middleware('auth:sanctum')->patch('/user/update-login-status', function (Request $request) {
+        $user = $request->user();
+        $user->has_logged_in = true;
+        $user->save();
 
-    // ✅ Delete a specific user
+        return response()->json(['message' => 'Login status updated']);
+    });
+    // 🧾 Admin Routes
+    Route::get('/admin/dashboard', [AdminController::class, 'index']);
     Route::delete('/user/{id}', [AuthController::class, 'deleteUser']);
 
-    // ✅ Add more authenticated API routes here
+    // 👤 Resident Profile Setup (First-Time Login)
+    Route::post('/residents/complete-profile', [ResidentProfileController::class, 'store']);    
+
+    // Get profile of authenticated user
+Route::middleware('auth:sanctum')->get('/profile', function (Request $request) {
+    return $request->user()->profile;
+});
+
+// Update profile
+Route::put('/profile/update', [ResidentProfileController::class, 'update']);
+
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user()->load('profile'); // 🛠 Load the related profile
+});
+
+Route::middleware(['auth:sanctum', 'admin'])->post('/admin/register', [AuthController::class, 'register']);
+
+Route::middleware('auth:sanctum')->get('/announcements', function () {
+    return response()->json([
+        'announcements' => App\Models\Announcement::latest()->get(),
+    ]);
+});
+
 });

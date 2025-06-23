@@ -1,16 +1,23 @@
 import React, { useState } from 'react';
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
-import { useAuth } from "../../contexts/AuthContext"; // ✅ Using useAuth hook
+import { useAuth } from "../../contexts/AuthContext";
 
 const AdminDashboard = () => {
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    role: 'resident',
+  });
+
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const { user } = useAuth(); // ✅ Access user from context
+  const { user } = useAuth();
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
@@ -19,16 +26,16 @@ const AdminDashboard = () => {
     setSuccess('');
 
     try {
-      await fetch('http://localhost:8000/sanctum/csrf-cookie', {
-        credentials: 'include',
-      });
+      // Get token from localStorage
+      const token = localStorage.getItem('authToken');
+      if (!token) throw new Error("No auth token found.");
 
-      const res = await fetch('http://localhost:8000/api/register', {
+      const res = await fetch('http://localhost:8000/api/admin/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        credentials: 'include',
         body: JSON.stringify(form),
       });
 
@@ -39,16 +46,11 @@ const AdminDashboard = () => {
         return;
       }
 
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        setSuccess('Registration successful!');
-      } else {
-        setError('Token not received.');
-      }
-
+      setSuccess('User registered successfully!');
+      setForm({ name: '', email: '', password: '', role: 'resident' }); // Reset form
     } catch (err) {
-      setError('Something went wrong.');
       console.error(err);
+      setError('Something went wrong.');
     }
   };
 
@@ -71,7 +73,6 @@ const AdminDashboard = () => {
         </h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Dashboard cards */}
           {dashboardCards.map((card, i) => (
             <div key={i} className={`bg-white shadow-lg rounded-xl p-6 border-l-4 border-${card.color}-500`}>
               <div className="text-2xl font-bold text-gray-700">{card.value}</div>
@@ -79,7 +80,7 @@ const AdminDashboard = () => {
             </div>
           ))}
 
-          {/* Register Form Card */}
+          {/* Register Form */}
           <div className="bg-white shadow-lg rounded-xl p-6 border-l-4 border-indigo-500 col-span-1 sm:col-span-2 lg:col-span-3">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Register New User</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,6 +111,19 @@ const AdminDashboard = () => {
                 required
                 className="w-full p-2 border border-gray-300 rounded"
               />
+              <select
+                name="role"
+                value={form.role}
+                onChange={handleChange}
+                required
+                className="w-full p-2 border border-gray-300 rounded"
+              >
+                <option value="resident">Resident</option>
+                <option value="admin">Admin</option>
+                <option value="staff">Staff</option>
+                <option value="treasurer">Treasurer</option>
+              </select>
+
               <button
                 type="submit"
                 className="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"

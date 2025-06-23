@@ -19,6 +19,7 @@ return [
         'logout',
         'register',
         'user',
+        'announcements',
         'sanctum/csrf-cookie',
     ],
 

@@ -16,11 +16,12 @@ export default function Login() {
     setStatus('');
 
     try {
+      // 🔐 1. Login API
       const res = await fetch('http://localhost:8000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify({ email, password }),
       });
@@ -31,50 +32,87 @@ export default function Login() {
         return;
       }
 
-      const { token } = await res.json();
+      const { token, user } = await res.json();
+
       if (!token) {
         setStatus('No token received.');
         return;
       }
 
+      // 💾 Save to localStorage
       localStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(user));
 
+      // 🧠 Get user data with token (optional if already received)
       const userRes = await fetch('http://localhost:8000/api/user', {
         method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
+          Authorization: `Bearer ${token}`,
+          Accept: 'application/json',
         },
       });
 
       const userData = await userRes.json();
 
-      if (userRes.ok) {
-        setUser(userData);
-        setStatus('Login successful! Redirecting...');
-        const role = userData.role;
-
-        setTimeout(() => {
-          switch (role) {
-            case 'admin':
-              navigate('/admin/dashboard');
-              break;
-            case 'treasurer':
-              navigate('/treasurer-dashboard');
-              break;
-            case 'residents':
-              navigate('/residents/dashboard');
-              break;
-            case 'staff':
-              navigate('/staff-dashboard');
-              break;
-            default:
-              navigate('/dashboard');
-          }
-        }, 1000); // Optional 1s delay to show status message
-      } else {
+      if (!userRes.ok) {
         setStatus('Failed to retrieve user data.');
+        return;
       }
+
+      setUser(userData);
+      setStatus('Login successful! Redirecting...');
+
+      const { role, has_logged_in } = userData;
+
+      // 🟡 First-time login handling for residents
+      if (role === 'residents' && !has_logged_in) {
+      console.log('🟡 First time login — sending PATCH to update has_logged_in...');
+
+      try {
+        const updateRes = await fetch('http://localhost:8000/api/user/update-login-status', {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        });
+
+        if (!updateRes.ok) {
+          const err = await updateRes.json();
+          console.warn('⚠️ Error updating login status:', err);
+        } else {
+          console.log('✅ First login status updated.');
+        }
+      } catch (error) {
+        console.error('Error in PATCH request:', error);
+      }
+
+      // 👇 Redirect to complete profile
+      navigate('/profile');
+      return;
+    }
+
+      // ✅ Normal redirect
+      setTimeout(() => {
+        switch (role) {
+          case 'admin':
+            navigate('/admin/dashboard');
+            break;
+          case 'treasurer':
+            navigate('/treasurer/dashboard');
+            break;
+          case 'staff':
+            navigate('/staff/dashboard');
+            break;
+          case 'residents':
+            navigate('/residents/dashboard');
+            break;
+          default:
+            navigate('/');
+        }
+      }, 1000);
+
     } catch (err) {
       console.error('[Login Error]', err);
       setStatus('Login failed. Please try again.');
@@ -105,30 +143,27 @@ export default function Login() {
               />
             </div>
 
-            <div className="relative">
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                  Password
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-3 flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-500 focus:outline-none"
-                    tabIndex={-1}
-                  >
-                    {showPassword ? <FaEyeSlash className="w-5 h-5" /> : <FaEye className="w-5 h-5" />}
-                  </button>
-                </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-600 dark:text-gray-300 hover:text-blue-500 focus:outline-none"
+                >
+                  {showPassword ? <FaEyeSlash className="w-5 h-5" /> : <FaEye className="w-5 h-5" />}
+                </button>
               </div>
+            </div>
 
             <button
               type="submit"

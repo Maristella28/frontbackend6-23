@@ -1,11 +1,10 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from '../utils/axiosConfig';
 
-// Axios global config
+// Axios Global Configuration
 axios.defaults.baseURL = 'http://localhost:8000';
-axios.defaults.withCredentials = false; // ❌ Token-based auth doesn't use cookies
+axios.defaults.withCredentials = false;
 
-// Automatically attach Bearer token to every request
 axios.interceptors.request.use(
   config => {
     const token = localStorage.getItem('authToken');
@@ -17,28 +16,32 @@ axios.interceptors.request.use(
   error => Promise.reject(error)
 );
 
-// Auth context setup
+// Create Auth Context
 const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
+// Provider
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true); // Add loading state
 
-  // Fetch the authenticated user
   const fetchUser = async () => {
     try {
       const res = await axios.get('/api/user');
-      setUser(res.data);
+      const data = res.data?.user || res.data; // handle both { user: {...} } and just { ... }
+      console.log('[AuthContext] User fetched:', data);
+      setUser(data);
     } catch (err) {
-      console.error('[AuthContext] Not authenticated', err?.response?.data);
+      console.error('[AuthContext] Not authenticated', err?.response?.data || err.message);
       setUser(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Login with email/password
   const login = async (email, password) => {
     try {
-      const res = await axios.post('/api/login', { email, password }); // ✅ fixed path
+      const res = await axios.post('/api/login', { email, password });
 
       const token = res.data.token || res.data.access_token;
       if (!token) throw new Error('No token returned from API');
@@ -51,7 +54,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout and clear token
   const logout = async () => {
     try {
       await axios.post('/api/logout');
@@ -63,14 +65,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Auto-fetch user if token exists
   useEffect(() => {
     const token = localStorage.getItem('authToken');
-    if (token) fetchUser();
+    if (token) {
+      fetchUser();
+    } else {
+      setIsLoading(false);
+    }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout }}>
+    <AuthContext.Provider value={{ user, setUser, isLoading, login, logout, fetchUser }}>
       {children}
     </AuthContext.Provider>
   );

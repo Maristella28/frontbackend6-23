@@ -1,110 +1,65 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import Navbar from '../../components/Navbar';
+import Sidebar from '../../components/Sidebar';
+import { useAuth } from '../../contexts/AuthContext';
+import axios from '../../utils/axiosConfig';
 
-import Navbar from "../../components/Navbar";
-import Sidebar from "../../components/Sidebar";
+const Dashboard = () => {
+  const { user, isLoading: authLoading } = useAuth();
+  const [announcements, setAnnouncements] = useState([]);
+  const [error, setError] = useState('');
 
+  const fetchAnnouncements = async () => {
+    try {
+      const res = await axios.get('/api/announcements');
+      setAnnouncements(res.data.announcements || []);
+    } catch (err) {
+      console.error('Error fetching announcements:', err);
+      setError('Failed to load announcements.');
+    }
+  };
 
-const CommunicationAnnouncement = () => {
-  // Dummy data for announcements
-  const [announcements, setAnnouncements] = useState([
-    {
-      id: 1,
-      title: 'Water Interruption',
-      content: 'There will be no water supply from 8AM to 5PM tomorrow.',
-      timedate: 'June 9, 2025 - 10:00 AM',
-    },
-    {
-      id: 2,
-      title: 'Community Clean-up',
-      content: 'Join us for a clean-up drive this Saturday at 7AM.',
-      timedate: 'June 8, 2025 - 02:00 PM',
-    },
-  ]);
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
 
-  // Dummy data for resident feedbacks
-  const [residentFeedbacks, setResidentFeedbacks] = useState([
-    {
-      id: 1,
-      name: 'John Doe',
-      feedback: 'Thanks for the update on the water cut-off!',
-      timedate: 'June 9, 2025 - 11:00 AM',
-    },
-    {
-      id: 2,
-      name: 'Jane Smith',
-      feedback: 'Traffic was really bad during the fiesta. Any plans to improve this?',
-      timedate: 'June 8, 2025 - 06:00 PM',
-    },
-    {
-      id: 3,
-      name: 'Mark Johnson',
-      feedback: 'Any new job opportunities at the barangay office?',
-      timedate: 'June 7, 2025 - 09:30 AM',
-    },
-    {
-      id: 4,
-      name: 'Anna Lopez',
-      feedback: 'Will the clean-up drive include the riverbank area?',
-      timedate: 'June 8, 2025 - 03:45 PM',
-    },
-  ]);
+  if (authLoading) return <p className="p-4">Loading user...</p>;
 
   return (
     <>
       <Navbar />
       <Sidebar />
-      <main className="bg-white min-h-screen ml-64 pt-20 p-8 font-sans">
-        <h1 className="text-2xl font-bold mb-8 text-gray-800">Communication and Announcement</h1>
+      <main className="ml-64 pt-20 px-6 py-10">
+        <h1 className="text-3xl font-bold mb-6">📢 Announcements</h1>
 
-        {/* Announcements Section */}
-        <div className="shadow-lg border rounded-lg overflow-hidden mb-10">
-          <div className="flex justify-between items-center p-4 border-b">
-            <h2 className="text-xl font-semibold">Announcements</h2>
-            <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-              Add Post
-            </button>
-          </div>
-          <table className="min-w-full text-sm text-left">
-            <thead className="bg-lime-300 text-black text-xs uppercase">
-              <tr>
-                <th className="px-4 py-3">Title</th>
-                <th className="px-4 py-3">Content</th>
-                <th className="px-4 py-3">Time and Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-lime-100">
-              {announcements.map((announcement) => (
-                <tr key={announcement.id}>
-                  <td className="px-4 py-3 font-medium">{announcement.title}</td>
-                  <td className="px-4 py-3">{announcement.content}</td>
-                  <td className="px-4 py-3">{announcement.timedate}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        {/* Resident Feedback Section */}
-        <div className="shadow-lg border rounded-lg overflow-hidden">
-          <div className="flex justify-between items-center p-4 border-b">
-            <h2 className="text-xl font-semibold">Resident Feedbacks</h2>
-          </div>
-          <div className="p-4 space-y-4 max-h-[500px] overflow-y-auto bg-lime-100">
-            {residentFeedbacks.map((feedback) => (
-              <div
-                key={feedback.id}
-                className="border rounded p-4 bg-white shadow hover:bg-lime-50 transition"
-              >
-                <p className="font-semibold text-green-700">{feedback.name}</p>
-                <p className="text-gray-700 mt-1">{feedback.feedback}</p>Add commentMore actions
-                <p className="text-gray-500 text-xs mt-2">{feedback.timedate}</p>
-              </div>
-            ))}
-          </div>
+        <div className="space-y-6">
+          {announcements.length === 0 && <p className="text-gray-500">No announcements found.</p>}
+
+          {announcements.map((a) => (
+            <div key={a.id} className="bg-white p-6 border rounded-xl shadow">
+              <h2 className="text-xl font-semibold text-green-700">{a.title}</h2>
+              <p className="mt-2 text-gray-800">{a.content}</p>
+              {a.image && (
+                <img
+                  src={`http://localhost:8000/storage/${a.image}`}
+                  alt="announcement"
+                  className="mt-4 max-w-full rounded"
+                />
+              )}
+              <p className="text-xs text-gray-500 mt-2">
+                Posted on{' '}
+                {a.published_at
+                  ? new Date(a.published_at).toLocaleString()
+                  : new Date(a.created_at).toLocaleString()}
+              </p>
+            </div>
+          ))}
         </div>
       </main>
     </>
   );
 };
 
-export default CommunicationAnnouncement;
+export default Dashboard;

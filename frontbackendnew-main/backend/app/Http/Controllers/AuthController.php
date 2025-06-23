@@ -13,25 +13,28 @@ class AuthController extends Controller
 public function register(Request $request)
 {
     $request->validate([
-        'name' => 'required|string|max:255',
-        'email' => 'required|string|email|unique:users',
+        'name'     => 'required|string|max:255',
+        'email'    => 'required|string|email|unique:users',
         'password' => 'required|string|min:8',
+        'role'     => 'nullable|string|in:admin,staff,treasurer,resident' // ✅ optional role
     ]);
 
     $user = User::create([
-        'name' => $request->name,
-        'email' => $request->email,
+        'name'     => $request->name,
+        'email'    => $request->email,
         'password' => bcrypt($request->password),
+        'role'     => $request->role ?? 'resident', // ✅ default to resident if not specified
     ]);
 
     $token = $user->createToken('auth_token')->plainTextToken;
 
     return response()->json([
         'message' => 'Registration successful.',
-        'token' => $token,
-        'user' => $user,
+        'token'   => $token,
+        'user'    => $user,
     ]);
 }
+
 
     // Login a user
     public function login(Request $request)
@@ -56,6 +59,12 @@ public function register(Request $request)
         ]);
     }
 
+public function user(Request $request)
+{
+    return response()->json([
+        'user' => $request->user()->load('profile') // 👈 important!
+    ]);
+}
     // Delete a user by ID
     public function deleteUser($id)
     {

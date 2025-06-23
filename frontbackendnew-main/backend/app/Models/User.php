@@ -22,6 +22,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'has_logged_in', // ✅ add this
     ];
 
     /**
@@ -42,4 +43,10 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    // ✅ One-to-One Relationship with Profile
+    public function profile()
+    {
+        return $this->hasOne(Profile::class);
+    }
 }
