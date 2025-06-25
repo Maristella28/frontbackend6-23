@@ -16,14 +16,14 @@ public function register(Request $request)
         'name'     => 'required|string|max:255',
         'email'    => 'required|string|email|unique:users',
         'password' => 'required|string|min:8',
-        'role'     => 'nullable|string|in:admin,staff,treasurer,resident' // ✅ optional role
+        'role'     => 'nullable|string|in:admin,staff,treasurer,residents' // ✅ optional role
     ]);
 
     $user = User::create([
         'name'     => $request->name,
         'email'    => $request->email,
         'password' => bcrypt($request->password),
-        'role'     => $request->role ?? 'resident', // ✅ default to resident if not specified
+        'role'     => $request->role ?? 'residents', // ✅ default to resident if not specified
     ]);
 
     $token = $user->createToken('auth_token')->plainTextToken;

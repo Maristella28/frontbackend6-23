@@ -1,47 +1,68 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbares from "../../components/Navbares";
 import Sidebares from "../../components/Sidebares";
-import { FaFileAlt, FaBusinessTime, FaIdBadge } from 'react-icons/fa';
+import { FaFileAlt, FaBusinessTime, FaIdBadge, FaHome } from 'react-icons/fa';
 
 const RequestDocuments = () => {
+  const navigate = useNavigate();
+
+  const documentOptions = [
+    {
+      label: "Barangay Clearance",
+      icon: <FaFileAlt className="text-green-700 text-5xl mb-4 animate-pulse mx-auto" />,
+      route: "/residents/brgyClearance",
+    },
+    {
+      label: "Barangay Business Permit",
+      icon: <FaBusinessTime className="text-green-700 text-5xl mb-4 animate-pulse mx-auto" />,
+      route: "/residents/brgyBusinessPermit",
+    },
+    {
+      label: "Certificate of Indigency",
+      icon: <FaIdBadge className="text-green-700 text-5xl mb-4 animate-pulse mx-auto" />,
+      route: "/residents/brgyIndigency",
+    },
+    {
+      label: "Certificate of Residency",
+      icon: <FaHome className="text-green-700 text-5xl mb-4 animate-pulse mx-auto" />,
+      route: "/residents/brgyResidency",
+    },
+  ];
+
   return (
     <>
       <Navbares />
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen bg-gradient-to-br from-green-100 via-white to-green-50">
         <Sidebares />
 
-        {/* Shift content further right with ml-32 */}
-        <div className="flex-1 flex items-center justify-center bg-white ml-32">
-          <div className="w-full max-w-5xl p-8">
-            {/* Document Cards */}
-            <div className="flex justify-center gap-8 mb-16">
-              <div className="bg-green-100 rounded-md p-6 shadow-md text-center hover:shadow-lg cursor-pointer w-64">
-                <FaFileAlt className="text-green-700 text-4xl mx-auto mb-4" />
-                <p className="font-semibold">Barangay Clearance</p>
-              </div>
-
-              <div className="bg-blue-100 rounded-md p-6 shadow-md text-center hover:shadow-lg cursor-pointer w-64">
-                <FaBusinessTime className="text-blue-700 text-4xl mx-auto mb-4" />
-                <p className="font-semibold">Barangay Business Clearance</p>
-              </div>
-
-              <div className="bg-purple-100 rounded-md p-6 shadow-md text-center hover:shadow-lg cursor-pointer w-64">
-                <FaIdBadge className="text-purple-700 text-4xl mx-auto mb-4" />
-                <p className="font-semibold">Community Tax Certificate (Cedula)</p>
-              </div>
-            </div>
-
-            {/* Dropdown */}
-            <div className="w-1/3 mx-auto">
-              <select className="w-full border border-gray-300 rounded-md p-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500">
-                <option disabled selected>Other Types Of Document</option>
-                <option>Certificate of Indigency</option>
-                <option>Certificate of Residency</option>
-                <option>Barangay ID</option>
-              </select>
-            </div>
+        <main className="flex-1 ml-64 pt-24 px-10 font-sans">
+          {/* Section Header */}
+          <div className="text-center mb-14">
+            <h1 className="text-4xl font-extrabold text-green-800 tracking-wide">
+              📄 Request Barangay Documents
+            </h1>
+            <p className="text-gray-600 mt-3 text-base max-w-xl mx-auto">
+              Choose the type of document you need and proceed to request.
+            </p>
           </div>
-        </div>
+
+          {/* Document Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-center">
+            {documentOptions.map((doc, index) => (
+              <div
+                key={index}
+                onClick={() => navigate(doc.route)}
+                className="bg-white border border-green-200 rounded-2xl p-6 w-72 text-center shadow-md hover:shadow-green-300 hover:scale-105 transition-all duration-300 cursor-pointer group"
+              >
+                {doc.icon}
+                <p className="font-semibold text-green-900 text-lg group-hover:underline">
+                  {doc.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </main>
       </div>
     </>
   );

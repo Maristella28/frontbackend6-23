@@ -94,5 +94,13 @@ public function user(Request $request)
         'user' => $request->user()->load('profile') // 👈 important!
     ]);
 }
+public function index()
+{
+    $profiles = Profile::all();
+
+    return response()->json([
+        'residents' => $profiles
+    ]);
+}
 }
 

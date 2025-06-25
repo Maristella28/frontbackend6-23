@@ -1,65 +1,107 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbares from "../../components/Navbares";
 import Sidebares from "../../components/Sidebares";
 
 const assetRecords = [
-  { asset: 'Laptop', date: '2025-06-01', status: 'Pending' },
-  { asset: 'Printer', date: '2025-06-02', status: 'Approved' },
-  { asset: 'Projector', date: '2025-06-03', status: 'Denied' },
-  { asset: 'Camera', date: '2025-06-04', status: 'Pending' },
-  { asset: 'Microphone', date: '2025-06-05', status: 'Approved' },
+  {
+    asset: 'Tent',
+    date: '2025-06-01',
+    price: 200,
+    image: 'https://www.tentking.com.ph/homepage_files/61cbe2edf5803e96a0951a5a_107376870_1764998693671238_1165338404769420243_n.jpg',
+  },
+  {
+    asset: 'Plastic Chairs (set of 10)',
+    date: '2025-06-02',
+    price: 100,
+    image: 'https://www.furnituremanila.com.ph/wp-content/uploads/2019/08/502-Revolving-Mirror-with-Hanger-2.png',
+  },
+  {
+    asset: 'Sound System',
+    date: '2025-06-03',
+    price: 300,
+    image: 'https://palawan-news.com/wp-content/uploads/2020/09/rtn.jpg',
+  },
+  {
+    asset: 'Table',
+    date: '2025-06-04',
+    price: 50,
+    image: 'https://www.churchchairs4less.com/cdn/shop/files/493-Foot_Kid_s_Plastic_Folding_Table_2023-10-07T19-01-49Z_1_3000x.jpg?v=1699898676',
+  },
+  {
+    asset: 'Commercial Space (1 day)',
+    date: '2025-06-05',
+    price: 500,
+    image: 'https://www.realtynetwork.ph/wp-content/uploads/2022/03/commercial-space-for-rent-in-plaridel-st-mandaue-building-view.jpg',
+  },
 ];
+
+const handleRequest = (item) => {
+  const current = JSON.parse(localStorage.getItem('requestedAssets')) || [];
+  const alreadyRequested = current.some((r) => r.asset === item.asset && r.date === item.date);
+
+  if (alreadyRequested) {
+    alert('You have already requested this asset.');
+    return;
+  }
+
+  const newRequest = {
+    asset: item.asset,
+    date: item.date,
+    status: 'Pending',
+  };
+
+  localStorage.setItem('requestedAssets', JSON.stringify([...current, newRequest]));
+  alert(`${item.asset} has been added to your request status.`);
+};
 
 const RequestAssets = () => {
   return (
     <>
       <Navbares />
       <Sidebares />
-      <main className="bg-white min-h-screen ml-64 pt-20 p-8 font-sans">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800">Request Assets</h1>
-          <button className="bg-lime-400 hover:bg-lime-500 text-black font-semibold py-2 px-6 rounded border border-black">
-            Request a Assets
-          </button>
+      <main className="bg-gradient-to-br from-green-50 to-white min-h-screen ml-64 pt-20 p-10 font-sans">
+        <div className="flex justify-between items-center mb-12">
+          <h1 className="text-4xl font-extrabold text-green-800 tracking-tight">
+            📦 Request Barangay Assets
+          </h1>
+          <Link to="/residents/statusassetrequests">
+            <button className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded-xl shadow-md transition">
+              View Request Status
+            </button>
+          </Link>
         </div>
 
-        <div className="shadow-lg border rounded-lg overflow-hidden">
-          <div className="flex justify-between items-center p-4 border-b">
-            <h2 className="text-xl font-semibold">All Available Assets</h2>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Search"
-                className="px-3 py-2 border rounded focus:outline-none"
-              />
-              <button className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400">Search</button>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+          {assetRecords.map((item, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-2xl shadow hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 overflow-hidden border border-green-100"
+            >
+              <div className="h-48 overflow-hidden bg-gray-100">
+                <img
+                  src={item.image}
+                  alt={item.asset}
+                  className="w-full h-full object-cover transition-transform duration-300 ease-in-out hover:scale-105"
+                />
+              </div>
+              <div className="p-5 space-y-2">
+                <h3 className="text-xl font-bold text-green-800">{item.asset}</h3>
+                <p className="text-2xl font-semibold text-green-600">₱{item.price.toFixed(2)}</p>
+                <p>
+                  <span className="inline-block bg-green-100 text-green-700 text-sm px-3 py-1 rounded-full font-medium">
+                    Available: {item.date}
+                  </span>
+                </p>
+                <button
+                  onClick={() => handleRequest(item)}
+                  className="w-full mt-4 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded-lg shadow transition"
+                >
+                  Request Now
+                </button>
+              </div>
             </div>
-          </div>
-
-          <table className="min-w-full text-sm text-left">
-            <thead className="bg-lime-300 text-black text-xs uppercase">
-              <tr>
-                <th className="px-4 py-3 font-semibold">Assets</th>
-                <th className="px-4 py-3 font-semibold">Date</th>
-                <th className="px-4 py-3 font-semibold">Status</th>
-                <th className="px-4 py-3 font-semibold">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200 bg-lime-100">
-              {assetRecords.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-4 py-3">{item.asset}</td>
-                  <td className="px-4 py-3">{item.date}</td>
-                  <td className="px-4 py-3">{item.status}</td>
-                  <td className="px-4 py-3">
-                    <button className="bg-white border border-gray-400 px-3 py-1 rounded hover:bg-gray-100 text-sm">
-                      Action ▼
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          ))}
         </div>
       </main>
     </>

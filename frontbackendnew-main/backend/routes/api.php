@@ -6,6 +6,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ResidentProfileController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\ResidentController;
 /*
 |--------------------------------------------------------------------------
 | Public API Routes (No Authentication Required)
@@ -60,5 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 Route::patch('announcements/{announcement}/toggle', [AnnouncementController::class, 'toggleStatus']);
+
+Route::get('/admin/residents', [ResidentProfileController::class, 'index']);
 
 });

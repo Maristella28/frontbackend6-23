@@ -7,18 +7,27 @@ const BlotterAppointment = () => {
     <>
       <Navbares />
       <Sidebares />
-      <main className="ml-64 pt-20 p-8 bg-white min-h-screen font-sans">
-        <h1 className="text-2xl font-bold text-gray-900 mb-10">Blotter Report</h1>
+      <main className="ml-64 pt-20 px-6 md:px-12 bg-green-50 min-h-screen font-sans">
+        {/* Header */}
+        <div className="mb-10">
+          <h1 className="text-3xl font-bold text-green-800">📋 Blotter Report</h1>
+          <p className="text-green-600 mt-1">Manage and generate blotter reports with ease.</p>
+        </div>
 
-        <div className="flex flex-wrap justify-center gap-10">
-          <button className="bg-yellow-200 hover:bg-yellow-300 text-black px-6 py-8 rounded-lg shadow-lg text-center w-60 transition-all duration-200">
-            <div className="text-4xl mb-2">⚠️</div>
-            <div className="font-semibold">Show List of Charter</div>
+        {/* Action Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 max-w-4xl mx-auto">
+          {/* Charter List Button */}
+          <button className="bg-green-100 hover:bg-green-200 transition-all duration-200 text-green-900 px-6 py-8 rounded-2xl shadow-md hover:shadow-lg flex flex-col items-center justify-center w-full">
+            <div className="text-5xl mb-4">📄</div>
+            <div className="text-lg font-semibold">Show List of Charter</div>
+            <p className="text-sm text-green-700 mt-1">View existing blotter entries</p>
           </button>
 
-          <button className="bg-red-200 hover:bg-red-300 text-black px-6 py-8 rounded-lg shadow-lg text-center w-60 transition-all duration-200">
-            <div className="text-4xl mb-2">📝</div>
-            <div className="font-semibold">Generate Blotter Appointment</div>
+          {/* Generate Blotter Button */}
+          <button className="bg-green-100 hover:bg-green-300 transition-all duration-200 text-green-900 px-6 py-8 rounded-2xl shadow-md hover:shadow-lg flex flex-col items-center justify-center w-full">
+            <div className="text-5xl mb-4">📝</div>
+            <div className="text-lg font-semibold">Generate Blotter Appointment</div>
+            <p className="text-sm text-green-700 mt-1">Create a new blotter entry</p>
           </button>
         </div>
       </main>
